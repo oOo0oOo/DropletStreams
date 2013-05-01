@@ -3,7 +3,6 @@
 import droplet_simulation as dr
 import re
 
-
 class StreamParser(object):
 
     def __init__(self, line=''):
@@ -20,6 +19,7 @@ class StreamParser(object):
 
             (r'(\w*)\-(\d+)\->(\w*)', 'SAMPLE'),
             (r'(\w*)\-s\->(\w*)', 'SPLIT'),
+            (r'(\w*)\-o\->(\w*)', 'COPY_OVER'),
 
             (r'(\w*),(\w+)\-m\->(\w*)', 'MERGE'),
             (r'(\w*),(\w+)\-c\->(\w*)', 'COMBINE'),
@@ -28,7 +28,7 @@ class StreamParser(object):
             (r'(\w*)\-\(\-([\w,]+)\)\->(\w*)', 'ABSENCE_FILTER'),
 
             (r'([\w,]*)\-b(\d*)\->(\w*)', 'MULTI_BUFFER'),
-            (r'(\w*)\-\(([A-Za-z\_]*)\)\->(\w*)', 'MONITOR'),
+            (r'(\w*)\-\((\w*)\)\->(\w*)', 'MONITOR'),
 
             # These commands are intended more for interactive use
             (r'plot(\w*)', 'PLOT'),
@@ -60,10 +60,13 @@ class StreamParser(object):
                 self.droplets = {}
 
             elif inp not in ('quit', 'exit'):
+                self.parse_line(inp)
+                '''
                 try:
                     self.parse_line(inp)
                 except Exception, e:
                     print 'Encountered Error:\n', repr(e)
+                '''
             else:
                 break
 
@@ -141,7 +144,7 @@ class StreamParser(object):
                             if target == '':
                                 target = 'current'
 
-                            self.streams[target] = dr.stream(volume=volume, volume_sigma=volume_sigma)
+                            self.streams[target] = dr.Stream(volume=volume, volume_sigma=volume_sigma)
 
                         elif tag == 'ADD_CONTENT':
                             params, target = found
@@ -171,7 +174,7 @@ class StreamParser(object):
 
                             self.droplets[target] = dr.sample(self.streams[orig], int(num))
 
-                        elif tag == 'SPLIT':
+                        elif tag in ('SPLIT', 'COPY_OVER'):
                             orig, target = found
 
                             if target == '':
@@ -179,7 +182,13 @@ class StreamParser(object):
                             if orig == '':
                                 orig = 'current'
 
-                            self.streams[target] = dr.split(self.streams[orig])
+                            if tag == 'SPLIT':
+                                self.streams[target] = dr.split(self.streams[orig])
+                            else:
+                                try:
+                                    self.streams[target].copy_over(self.streams[orig])
+                                except AttributeError:
+                                    print 'Only stream sources can be overwritten.'
 
                         elif tag in ('MERGE', 'COMBINE'):
                             orig1, orig2, target = found
@@ -337,7 +346,7 @@ class StreamParser(object):
                                 for l in snippet.split('\n'):
                                     self.parse_line(l)
                             except KeyError:
-                                print 'Snippet not found.'
+                                pass
 
                         # end pattern search after first match
                         break

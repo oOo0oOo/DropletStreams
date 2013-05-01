@@ -9,6 +9,41 @@ from collections import defaultdict
 # content = {'molecule_name1': amount, 'molecule_name2': amount2, ...}
 
 
+class Stream(object):
+    def __init__(self, content={}, volume=0, volume_sigma=0, content_sigma=0):
+        self.content = content
+        self.volume = volume
+        self.volume_sigma = volume_sigma
+        self.content_sigma = content_sigma
+        self.copied = False
+        self.stream = False
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        if not self.copied:
+            vol = random.gauss(self.volume, self.volume_sigma * self.volume)
+            if self.content_sigma == 0:
+                cont = self.content.copy()
+            else:
+                cont = {}
+                for mol, amount in self.content.items():
+                    cont[mol] = random.gauss(amount, self.content_sigma * amount)
+
+            return list([vol, cont])
+        else:
+            return self.stream.next()
+
+    def copy_over(self, stream=False):
+        if not stream:
+            self.copied = False
+            self.stream = False
+        else:
+            self.copied = True
+            self.stream = stream
+
+
 def stream(content={}, volume=0, volume_sigma=0, content_sigma=0):
     '''Basic stream of droplets; Unlimited supply of one type of droplet'''
     while 1:
