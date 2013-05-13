@@ -136,6 +136,7 @@ class StreamParser(object):
                     if match:
                         found = match.groups(0)
                         if tag == 'CREATE_STREAM':
+                            print 'found', found
                             origin, target = found
                             params = origin.strip().split(',')
 
@@ -152,6 +153,7 @@ class StreamParser(object):
                             if target == '':
                                 target = 'current'
 
+                            print tag, volume, volume_sigma, target
                             self.streams[target] = dr.Stream(volume=volume, volume_sigma=volume_sigma)
 
                         elif tag == 'ADD_CONTENT':
@@ -166,7 +168,8 @@ class StreamParser(object):
 
                             if target == '':
                                 target = 'current'
-                                
+                            
+                            print tag, content, value, target
                             self.streams[target].add_content(content, float(value))
                             #original_stream = self.streams[target]
                             #new_stream = dr.stream({content: float(value)}, 0, content_sigma=sigma)

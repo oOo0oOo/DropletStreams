@@ -1,17 +1,34 @@
 import stream_parser
 import unittest
 
+class TestDroplets(unittest.TestCase):
+    def single_droplet_test(self, tests):
+        for line, droplet, amount in tests:
+            # print 'Testing Line', line
+            stream = stream_parser.StreamParser(line)
+            res = stream.droplets['out']
+            self.assertEqual(res[0], droplet)
+            self.assertEqual(len(res), amount)
+
+    def test_simple_collection(self):
+
+        tests = [
+            ('()-->out;out-10->out', [0, {}], 10),
+            ('(100)-->out;{red, 10}-->out;out-5->out', [100, {'red': 10}], 5)
+        ]
+
+        self.single_droplet_test(tests)
 
 class TestStreamParser(unittest.TestCase):
 
     def single_droplet_test(self, tests, repeats=10):
         for line, droplet in tests:
             for i in range(repeats):
-                print 'Testing: ', line
+                # print 'Testing: ', line
                 stream = stream_parser.StreamParser(line)
                 stream.parse_line('out-1->out')
                 res = stream.droplets['out'][0]
-                # self.assertEqual(res, droplet)
+                self.assertEqual(res, droplet)
                 assert res, droplet
 
     def test_creation(self):

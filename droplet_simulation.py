@@ -31,17 +31,17 @@ class Stream(object):
                 cont = {}
                 for mol, amount in self.content.items():
                     cont[mol] = random.gauss(amount, self.content_sigma * amount)
-            print 'sampled content', cont
             return list([vol, cont])
         else:
             return self.stream.next()
 
     def add_content(self, molecule, amount):
-        print 'Adding content', molecule, amount
+        print 'Adding', molecule, amount
         if molecule in self.content.keys():
             self.content[molecule] += amount
         else:
             self.content[molecule] = amount
+        print 'New content', self.content
 
     def copy_over(self, stream=False):
         if not stream:
