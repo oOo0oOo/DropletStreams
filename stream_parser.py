@@ -136,7 +136,6 @@ class StreamParser(object):
                     if match:
                         found = match.groups(0)
                         if tag == 'CREATE_STREAM':
-                            print 'found', found
                             origin, target = found
                             params = origin.strip().split(',')
 
@@ -153,24 +152,23 @@ class StreamParser(object):
                             if target == '':
                                 target = 'current'
 
-                            print tag, volume, volume_sigma, target
-                            self.streams[target] = dr.Stream(volume=volume, volume_sigma=volume_sigma)
+                            self.streams[target] = dr.Stream(volume, volume_sigma, {}, 0.0)
 
                         elif tag == 'ADD_CONTENT':
                             params, target = found
                             params = params.strip().split(',')
                             if len(params) == 3:
-                                content, value, sigma = params
+                                cont, val, sigma = params
                                 sigma = float(sigma)
                             else:
-                                content, value = params
+                                cont, val = params
                                 sigma = 0.0
 
                             if target == '':
                                 target = 'current'
-                            
-                            print tag, content, value, target
-                            self.streams[target].add_content(content, float(value))
+
+                            self.streams[target].add_content(cont, float(val))
+
                             #original_stream = self.streams[target]
                             #new_stream = dr.stream({content: float(value)}, 0, content_sigma=sigma)
 
@@ -185,10 +183,11 @@ class StreamParser(object):
                                 orig = 'current'
 
                             droplets = dr.sample(self.streams[orig], int(num))
-                            if tag == 'SAMPLE':
-                                self.droplets[target] = droplets
-                            elif tag == 'APPEND':
+
+                            if tag == 'APPEND' and target in self.droplets.keys():
                                 self.droplets[target] += droplets
+                            else:
+                                self.droplets[target] = droplets
 
                         elif tag in ('SPLIT', 'COPY_OVER'):
                             orig, target = found

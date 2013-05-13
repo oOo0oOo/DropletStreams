@@ -11,7 +11,7 @@ from collections import defaultdict, Counter
 
 class Stream(object):
 
-    def __init__(self, content={}, volume=0, volume_sigma=0, content_sigma=0):
+    def __init__(self, volume, volume_sigma, content, content_sigma):
         self.content = content
         self.volume = volume
         self.volume_sigma = volume_sigma
@@ -36,12 +36,10 @@ class Stream(object):
             return self.stream.next()
 
     def add_content(self, molecule, amount):
-        print 'Adding', molecule, amount
         if molecule in self.content.keys():
             self.content[molecule] += amount
         else:
             self.content[molecule] = amount
-        print 'New content', self.content
 
     def copy_over(self, stream=False):
         if not stream:

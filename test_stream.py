@@ -10,13 +10,21 @@ class TestDroplets(unittest.TestCase):
             self.assertEqual(res[0], droplet)
             self.assertEqual(len(res), amount)
 
-    def test_simple_collection(self):
+    def test_droplet_collection(self):
 
         tests = [
             ('()-->out;out-10->out', [0, {}], 10),
-            ('(100)-->out;{red, 10}-->out;out-5->out', [100, {'red': 10}], 5)
+            ('(100)-->out;{red, 10}-->out;out-5->out', [100, {'red': 10}], 5),
+            ('(10)-->out;{green, 10}-->out;out-10000->out', [10, {'green': 10}], 10000)
         ]
+        self.single_droplet_test(tests)
 
+    def test_droplet_append(self):
+        tests = [
+            ('()-->out;out-+10->out', [0, {}], 10),
+            ('()-->out;out-+15->out;out-+30->out;out-+14->out', [0, {}], 59),
+            ('()-->out;out-10->out;(100)-->a;a-+100->out', [0, {}], 110)
+        ]
         self.single_droplet_test(tests)
 
 class TestStreamParser(unittest.TestCase):
