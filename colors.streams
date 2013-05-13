@@ -1,0 +1,11 @@
+#Create the droplet sources
+(100) --> empty
+(100) --> red; {red, 10} --> red
+(100) --> green; {green, 10} --> green
+(100) --> blue; {blue, 10} --> blue
+(100) --> orange; {orange, 10} --> orange
+
+# Create mixed sources (buffers)
+red, empty -b10-> r05
+red, empty, empty -b15-> r03
+red, red, empty -b15-> r06

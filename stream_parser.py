@@ -3,6 +3,7 @@
 import droplet_simulation as dr
 import re
 
+
 class StreamParser(object):
 
     def __init__(self, line=''):
@@ -18,8 +19,10 @@ class StreamParser(object):
             (r'(\w*)\-\->(\w*)', 'COPY'),
 
             (r'(\w*)\-(\d+)\->(\w*)', 'SAMPLE'),
+            (r'(\w*)\-\+(\d+)\->(\w*)', 'APPEND'),
             (r'(\w*)\-s\->(\w*)', 'SPLIT'),
             (r'(\w*)\-o\->(\w*)', 'COPY_OVER'),
+            (r'\-!o\->(\w*)', 'RESTORE_COPY'),
 
             (r'(\w*),(\w+)\-m\->(\w*)', 'MERGE'),
             (r'(\w*),(\w+)\-c\->(\w*)', 'COMBINE'),
@@ -30,14 +33,19 @@ class StreamParser(object):
             (r'([\w,]*)\-b(\d*)\->(\w*)', 'MULTI_BUFFER'),
             (r'(\w*)\-\((\w*)\)\->(\w*)', 'MONITOR'),
 
-            # These commands are intended more for interactive use
+            # These commands are more intended for interactive use
             (r'plot(\w*)', 'PLOT'),
             (r'show(\w*)', 'SHOW'),
             (r'unique(\w*)', 'UNIQUE'),
+            (r'analyze(\w*)', 'ANALYZE'),
             (r'hist(\d+),(\w*)', 'HISTOGRAM'),
+
+            # Repeated snippet execution with combinations of streams copied on streams
+            #(r'>>(\w+):([\w,]*)\-\->([\w,]*)', 'COMBINATIONS'),
 
             #!! Save is to save droplets while load is to load scripts
             (r'csv(\w*),(\w+)', 'SAVE'),
+            # Load (if second argument is given: load into snippet)
             (r'(\w+)>(\w*)', 'LOAD'),
 
             # Snippets have lowest precedence
@@ -83,11 +91,11 @@ class StreamParser(object):
             f.close()
 
     def parse_line(self, orig_line):
-        #Remove whitespace
+        # Remove whitespace
         lines = orig_line.replace(' ', '')
 
         # Comment whole line
-        #if orig_line[0] == '#':
+        # if orig_line[0] == '#':
         #    print 'comment'
         #    return
 
@@ -158,21 +166,26 @@ class StreamParser(object):
 
                             if target == '':
                                 target = 'current'
+                                
+                            self.streams[target].add_content(content, float(value))
+                            #original_stream = self.streams[target]
+                            #new_stream = dr.stream({content: float(value)}, 0, content_sigma=sigma)
 
-                            original_stream = self.streams[target]
-                            new_stream = dr.stream({content: float(value)}, 0, content_sigma=sigma)
+                            #self.streams[target] = dr.merge(original_stream, new_stream)
 
-                            self.streams[target] = dr.merge(original_stream, new_stream)
-
-                        elif tag == 'SAMPLE':
+                        elif tag in ('SAMPLE', 'APPEND'):
                             orig, num, target = found
 
-                            if target == '':
+                            if not target:
                                 target = 'current'
-                            if orig == '':
+                            if not orig:
                                 orig = 'current'
 
-                            self.droplets[target] = dr.sample(self.streams[orig], int(num))
+                            droplets = dr.sample(self.streams[orig], int(num))
+                            if tag == 'SAMPLE':
+                                self.droplets[target] = droplets
+                            elif tag == 'APPEND':
+                                self.droplets[target] += droplets
 
                         elif tag in ('SPLIT', 'COPY_OVER'):
                             orig, target = found
@@ -240,6 +253,19 @@ class StreamParser(object):
 
                             self.streams[target] = dr.multi_buffer(streams, capacity)
 
+                        elif tag == 'COMBINATIONS':
+                            snippet, orig, target = found
+
+                            origs = orig.split(',')
+                            targets = target.split(',')
+
+                            for i, name in enumerate(origs):
+                                if name == '': origs[i] = 'current'
+
+                            for i, name in enumerate(targets):
+                                if name == '': targets[i] = 'current'
+
+
                         elif tag == 'MONITOR':
                             orig, name, target = found
 
@@ -250,6 +276,13 @@ class StreamParser(object):
 
                             self.streams[target] = dr.droplet_monitor(self.streams[orig], name)
 
+                        elif tag == 'RESTORE_COPY':
+                            orig = found[0]
+                            if not orig:
+                                orig = 'current'
+
+                            self.streams[orig].copy_over()
+
                         elif tag == 'PLOT':
                             orig = found[0]
                             if orig == '':
@@ -259,6 +292,13 @@ class StreamParser(object):
                                 dr.extract_data(self.droplets[orig], plot=True)
                             except KeyError:
                                 raise RuntimeError('Could not find droplets: ' + orig)
+
+                        elif tag == 'ANALYZE':
+                            orig = found[0]
+                            if not orig:
+                                orig = 'current'
+
+                            dr.analyze(self.droplets[orig])
 
                         elif tag == 'SAVE':
                             orig, filename = found

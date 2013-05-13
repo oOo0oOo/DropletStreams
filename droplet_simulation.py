@@ -2,7 +2,7 @@ import random
 import math
 import csv
 import itertools as it
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 # Droplet is built up as follows:
 # droplet = [volume, content]
@@ -10,6 +10,7 @@ from collections import defaultdict
 
 
 class Stream(object):
+
     def __init__(self, content={}, volume=0, volume_sigma=0, content_sigma=0):
         self.content = content
         self.volume = volume
@@ -30,10 +31,17 @@ class Stream(object):
                 cont = {}
                 for mol, amount in self.content.items():
                     cont[mol] = random.gauss(amount, self.content_sigma * amount)
-
+            print 'sampled content', cont
             return list([vol, cont])
         else:
             return self.stream.next()
+
+    def add_content(self, molecule, amount):
+        print 'Adding content', molecule, amount
+        if molecule in self.content.keys():
+            self.content[molecule] += amount
+        else:
+            self.content[molecule] = amount
 
     def copy_over(self, stream=False):
         if not stream:
@@ -43,9 +51,9 @@ class Stream(object):
             self.copied = True
             self.stream = stream
 
-
+'''
 def stream(content={}, volume=0, volume_sigma=0, content_sigma=0):
-    '''Basic stream of droplets; Unlimited supply of one type of droplet'''
+    #Basic stream of droplets; Unlimited supply of one type of droplet
     while 1:
         vol = random.gauss(volume, volume_sigma*volume)
         if content_sigma == 0:
@@ -56,6 +64,7 @@ def stream(content={}, volume=0, volume_sigma=0, content_sigma=0):
                 cont[mol] = random.gauss(amount, content_sigma*amount)
 
         yield list([vol, cont])
+'''
 
 
 def combine(stream1, stream2):
@@ -186,6 +195,9 @@ def filter_stream(stream, func, tries=500):
 
 def multi_buffer(streams, capacity):
     '''Buffer with multiple stream inputs. [streams], capacity'''
+    # Yields a droplet first and fills buffer upon first use (nice when copying over)
+    yield streams[0].next()
+
     def stream_sel(streams):
         while 1:
             for stream in streams:
@@ -295,6 +307,26 @@ def extract_data(droplets, plot=False):
         plt.show()
 
     return data
+
+
+def analyze(droplets):
+    dyes = it.chain.from_iterable([c.keys() for _, c in droplets])
+    dyes = list(set(dyes))
+    print 'All dyes in droplets:', ', '.join(dyes)
+
+    total_droplets = len(droplets)
+
+    d = hashify(droplets)
+    c = Counter(d)
+    num = 10
+    if len(c) < 10:
+        num = len(c)
+    else:
+        print 'Showing 10 most common droplets'
+
+    for drop, occ in c.items()[:num]:
+        perc = round(100.0 * occ / total_droplets, 2)
+        print '{} times ({}%): {}'.format(occ, perc, drop)
 
 
 def histogram(droplets, bins=5):

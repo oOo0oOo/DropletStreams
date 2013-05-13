@@ -1,0 +1,39 @@
+# A tool suite
+# Load colors
+colors>
+
+# A merge split
+>merge_split; ()-->i1 ; ()-->i2 ; i1,i2-m->out ; out -s-> out
+
+# W (i1 -i3 --> o1, o2) with salt (i4)
+>combine_salt; ()-->i1; ()-->i2; ()-->i3; ()-->i4; i1,i2-c->o1; i2,i4-c->salt; salt,i3-c->o2
+
+#Set streams as inputs (1 & 2)
+>r03_1; r03 -o-> i1
+>r05_1; r05 -o-> i1
+>r06_1; r06 -o-> i1
+>r_1; red -o-> i1
+>e_1; empty -o-> i1
+
+>r03_2; r03 -o-> i2
+>r05_2; r05 -o-> i2
+>r06_2; r06 -o-> i2
+>r_2; red -o-> i2
+>e_2; empty -o-> i2
+
+
+# unset i1 and i2
+>unset;-!o->i1;-!o->i2;-!o->i3;-!o->i4
+
+# histogramms
+>histo; hist 100, 
+
+#Some run & analyze snippets
+# pre sample 500 droplets to empty buffers
+>test; unique; analyze
+>pre; out-500->
+
+>run; pre; out -100->; test
+>run1k; pre; out-1000->; test
+>run10k; pre; out-10000->; test
+>run100k; pre; out-100000->; test
