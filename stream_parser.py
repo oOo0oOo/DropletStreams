@@ -69,12 +69,7 @@ class StreamParser(object):
 
             elif inp not in ('quit', 'exit'):
                 self.parse_line(inp)
-                '''
-                try:
-                    self.parse_line(inp)
-                except Exception, e:
-                    print 'Encountered Error:\n', repr(e)
-                '''
+
             else:
                 break
 
@@ -93,11 +88,6 @@ class StreamParser(object):
     def parse_line(self, orig_line):
         # Remove whitespace
         lines = orig_line.replace(' ', '')
-
-        # Comment whole line
-        # if orig_line[0] == '#':
-        #    print 'comment'
-        #    return
 
         # Split line into seperate lines marked by ;
         lines = lines.split(';')
@@ -168,11 +158,6 @@ class StreamParser(object):
                                 target = 'current'
 
                             self.streams[target].add_content(cont, float(val))
-
-                            #original_stream = self.streams[target]
-                            #new_stream = dr.stream({content: float(value)}, 0, content_sigma=sigma)
-
-                            #self.streams[target] = dr.merge(original_stream, new_stream)
 
                         elif tag in ('SAMPLE', 'APPEND'):
                             orig, num, target = found
@@ -389,7 +374,7 @@ class StreamParser(object):
                                     self.parse_line(l)
                             except KeyError:
                                 pass
-
+                        
                         # end pattern search after first match
                         break
 
