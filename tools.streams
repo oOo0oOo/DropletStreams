@@ -6,7 +6,13 @@ colors>
 >merge_split; ()-->i1 ; ()-->i2 ; i1,i2-m->out ; out -s-> out
 
 # W (i1 -i3 --> o1, o2) with salt (i4)
->combine_salt; ()-->i1; ()-->i2; ()-->i3; ()-->i4; i1,i2-c->o1; i2,i4-c->salt; salt,i3-c->o2
+>combine_salt; ()-->i1; ()-->i2; ()-->i3; ()-->i4; i1,i2-c->o1; i2,i4-c->salted; salted,i3-c->o2
+
+# Simple salt. 2 inputs + 1 salt (i3) ==> 1 output
+>simple_salt; ()-->i1; ()-->i2; ()-->i3; i3,i2-c->salted; i1,salted-c->out
+
+# Add a monitor to the output
+>monitor_out;out-(Output)->out
 
 #Set streams as inputs (1 & 2)
 >r03_1; r03 -o-> i1
@@ -21,8 +27,20 @@ colors>
 >r_2; red -o-> i2
 >e_2; empty -o-> i2
 
+>r03_3; r03 -o-> i3
+>r05_3; r05 -o-> i3
+>r06_3; r06 -o-> i3
+>r_3; red -o-> i3
+>e_3; empty -o-> i3
 
-# unset i1 and i2
+>r03_4; r03 -o-> i4
+>r05_4; r05 -o-> i4
+>r06_4; r06 -o-> i4
+>r_4; red -o-> i4
+>e_4; empty -o-> i4
+
+
+# unset i1, i2, i3 and i4
 >unset;-!o->i1;-!o->i2;-!o->i3;-!o->i4
 
 # histogramms
