@@ -19,6 +19,16 @@ class TestDroplets(unittest.TestCase):
         ]
         self.single_droplet_test(tests)
 
+    def test_droplet_deletion(self):
+
+        tests = [
+            ('()-->out;out-10->out;out-0->out;out-10->out', [0, {}], 10),
+            ('()-->out;out-10->out;out-0->out;out-1->out', [0, {}], 1),
+            ('()-->out;out-0->out;out-1->out', [0, {}], 1),
+            ('()-->out;out-0->out;out-0->out;out-1->out', [0, {}], 1)
+        ]
+        self.single_droplet_test(tests)
+
     def test_droplet_append(self):
         tests = [
             ('()-->out;out-+10->out', [0, {}], 10),
@@ -29,7 +39,7 @@ class TestDroplets(unittest.TestCase):
 
 class TestStreamParser(unittest.TestCase):
 
-    def single_droplet_test(self, tests, repeats=10):
+    def single_droplet_test(self, tests, repeats=25):
         for line, droplet in tests:
             for i in range(repeats):
                 # print 'Testing: ', line
@@ -79,9 +89,9 @@ class TestStreamParser(unittest.TestCase):
 
     def test_analyze(self):
         tests = [
-            ('()-->out;out-100->;analyze', [0, {}])
+            ('(10)-->out;(25)-->alt;out,alt-c->out;out-100->;analyze', [10, {}])
         ]
-        print 'Trying analyze, will print analysis'
+        print 'Testing analyze, will print one analysis...'
         self.single_droplet_test(tests, 1)
 
     def test_copy_over(self):
@@ -89,6 +99,10 @@ class TestStreamParser(unittest.TestCase):
             ('(20, 0.08)-->out;(100)-->a;a-o->out', [100, {}]),
             ('(20, 0.08)-->out;()-->a;a-o->out', [0, {}]),
             ('(20, 0.08)-->inter;inter-s->out;(10)-->a;a-o->inter', [5, {}]),
+            ('()-->out;(100)-->inter;inter-o->out', [100, {}]),
+            #Remove copy over tests...
+            ('()-->out;(100)-->inter;inter-o->out;-!o->out', [0, {}]),
+            ('(10)-->out;-!o->out', [10, {}])
         ]
 
         self.single_droplet_test(tests)
