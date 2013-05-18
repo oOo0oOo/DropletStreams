@@ -18,7 +18,6 @@ class StreamParser(object):
             (r'{([\w,.]+)}\-\->(\w*)', 'ADD_CONTENT'),
             (r'(\w*)\-\->(\w*)', 'COPY'),
 
-            (r'(\w*)\-(\d+)\->(\w*)', 'SAMPLE'),
             (r'(\w*)\-\+(\d+)\->(\w*)', 'APPEND'),
             (r'(\w*)\-s\->(\w*)', 'SPLIT'),
             (r'(\w*)\-o\->(\w*)', 'COPY_OVER'),
@@ -32,6 +31,8 @@ class StreamParser(object):
 
             (r'([\w,]*)\-b(\d*)\->(\w*)', 'MULTI_BUFFER'),
             (r'(\w*)\-\((\w*)\)\->(\w*)', 'MONITOR'),
+            
+            (r'(\w*)\-(\d+)\->(\w*)', 'SAMPLE'),
 
             # These commands are more intended for interactive use
             (r'plot(\w*)', 'PLOT'),

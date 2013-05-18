@@ -237,7 +237,6 @@ def droplet_monitor(stream, name=''):
         print header + disp
         yield droplet
 
-
 def hashify(droplets):
     d = []
     for vol, content in droplets:

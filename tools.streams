@@ -12,30 +12,42 @@ colors>
 >simple_salt; ()-->i1; ()-->i2; ()-->i3; i3,i2-c->salted; i1,salted-c->out
 
 # Add a monitor to the output
->monitor_out;out-(Output)->out
+>monitor_out; out-(Output)->out
 
-#Set streams as inputs (1 & 2)
+#Set streams as inputs
 >r03_1; r03 -o-> i1
 >r05_1; r05 -o-> i1
 >r06_1; r06 -o-> i1
+>r01_1; r01 -o-> i1
+>r075_1; r075 -o-> i1
+>r025_1; r025 -o-> i1
 >r_1; red -o-> i1
 >e_1; empty -o-> i1
 
 >r03_2; r03 -o-> i2
 >r05_2; r05 -o-> i2
 >r06_2; r06 -o-> i2
+>r01_2; r01 -o-> i2
+>r075_2; r075 -o-> i2
+>r025_2; r025 -o-> i2
 >r_2; red -o-> i2
 >e_2; empty -o-> i2
 
 >r03_3; r03 -o-> i3
 >r05_3; r05 -o-> i3
 >r06_3; r06 -o-> i3
+>r01_3; r01 -o-> i3
+>r025_3; r025 -o-> i3
+>r075_3; r075 -o-> i3
 >r_3; red -o-> i3
 >e_3; empty -o-> i3
 
 >r03_4; r03 -o-> i4
 >r05_4; r05 -o-> i4
 >r06_4; r06 -o-> i4
+>r01_4; r01 -o-> i4
+>r025_4; r025 -o-> i4
+>r075_4; r075 -o-> i4
 >r_4; red -o-> i4
 >e_4; empty -o-> i4
 
