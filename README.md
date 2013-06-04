@@ -18,7 +18,7 @@ Define a as a stream of droplets with defined size and variation (0-1).
 **() --> a** defines droplets with volume 0, **(size) --> a** makes droplets with no variation in size.
 
 
-**{molecule, amount, variation} --> a**
+**{molecule, amount} --> a**
 
 Add amount of molecule to droplets in stream a
 
@@ -46,6 +46,17 @@ Creates stream c by merging one droplet from a and b
 **a -s-> b**
 
 Splits droplets from stream a (amount and molecules) and creates stream b
+
+
+**a -o-> b**
+
+Copy a over b. This means if a droplet from b is requested, it is not generated
+but requested from a instead.
+
+
+**-!o-> b**
+
+Remove copy over. Reset b to original droplets.
 
 
 **a, ... , n -b10-> x**
@@ -86,6 +97,10 @@ Samples 10 droplets from stream a and saves them as droplets b.
 !You can currently have a stream bbb and droplets bbb at the same time! (Don't know if this is clever...)
 This will also trigger the monitors in between the streams.
 
+**a -+10-> b**
+
+Similar to a -10-> b but adds to droplet container if present. 
+
 
 **plot b**
 
@@ -103,6 +118,7 @@ Show histograms (100 bins) for each dye in droplets b
 
 
 
+
 ###Comments, Whitespace & Multi Line Statements
 
 Use **#** to comment a line
@@ -113,7 +129,7 @@ All whitespace is ignored.
 
 Use ; to separate multiple statements on one line like such:
 
-**(100) --> a; {mol1, 100, 0.01} --> a**
+**(100) --> a; {mol1, 100} --> a**
 
 
 

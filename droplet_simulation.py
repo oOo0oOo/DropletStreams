@@ -4,12 +4,10 @@ import csv
 import itertools as it
 from collections import defaultdict, Counter
 
-# Droplet is built up as follows:
-# droplet = [volume, content]
-# content = {'molecule_name1': amount, 'molecule_name2': amount2, ...}
-
-
 class Stream(object):
+    '''A Stream acts as a source for droplets. 
+        Droplets can be 
+        '''
 
     def __init__(self, volume, volume_sigma, content, content_sigma):
         self.content = content
@@ -23,6 +21,18 @@ class Stream(object):
         return self
 
     def next(self):
+        '''
+        When the next method is called, a new droplet is generated and returned where
+        
+        droplet = [volume, content]
+        content = {'molecule_name1': amount, 'molecule_name2': amount2, ...}
+
+        1 > *_sigma > 0; If > 0 droplets will have a variation according to a normal distribution:
+
+        E.g. droplet_volume = NormalDistribution(u = volume, sigma = volume * volume_sigma)
+
+        content_sigma is global for all contents in a droplet.
+        '''
         if not self.copied:
             vol = random.gauss(self.volume, self.volume_sigma * self.volume)
             if self.content_sigma == 0:
@@ -36,18 +46,24 @@ class Stream(object):
             return self.stream.next()
 
     def add_content(self, molecule, amount):
+        '''Add content to the stream. All requested droplets will contain this content.'''
         if molecule in self.content.keys():
             self.content[molecule] += amount
         else:
             self.content[molecule] = amount
 
-    def copy_over(self, stream=False):
-        if not stream:
+    def copy_over(self, target_stream=False):
+        '''
+        Copy over with another stream.
+        Stream will ignore its preset parameters and each time the next
+        method is called it will instead request a droplet from the provided target_stream. 
+        '''
+        if not target_stream:
             self.copied = False
             self.stream = False
         else:
             self.copied = True
-            self.stream = stream
+            self.stream = target_stream
 
 '''
 def stream(content={}, volume=0, volume_sigma=0, content_sigma=0):

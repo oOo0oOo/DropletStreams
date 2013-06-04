@@ -7,8 +7,8 @@ import re
 class StreamParser(object):
 
     def __init__(self, line=''):
-        # Streams is a dictionary of streams saved under a value (using ->)
-        # Droplets is a dictionary of lists of droplets saved under a value (using e.g. -1000->)
+        # Streams is a dictionary of streams (created using -->)
+        # Droplets is a dictionary of lists of droplets (created using e.g. -1000->)
         self.streams = {}
         self.droplets = {}
         self.snippets = {}
@@ -44,7 +44,7 @@ class StreamParser(object):
             # Repeated snippet execution with combinations of streams copied on streams
             #(r'>>(\w+):([\w,]*)\-\->([\w,]*)', 'COMBINATIONS'),
 
-            #!! Save is to save droplets while load is to load scripts
+            #!! Save is to save DROPLETS while load is to load scripts
             (r'csv(\w*),(\w+)', 'SAVE'),
             # Load (if second argument is given: load into snippet)
             (r'(\w+)>(\w*)', 'LOAD'),
@@ -347,7 +347,7 @@ class StreamParser(object):
                                 repl.append('Snippet {}:\n{}'.format(orig, self.snippets[orig]))
 
                             if not repl:
-                                repl.append('Could not find {} in streams or droplets.'.format(orig))
+                                repl.append('Could not find {} in streams, droplets or snippets.'.format(orig))
 
                             print '\n\n'.join(repl)
 
