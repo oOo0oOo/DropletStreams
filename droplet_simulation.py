@@ -5,9 +5,7 @@ import itertools as it
 from collections import defaultdict, Counter
 
 class Stream(object):
-    '''A Stream acts as a source for droplets. 
-        Droplets can be 
-        '''
+    '''A Stream acts as a source for droplets.'''
 
     def __init__(self, volume, volume_sigma, content, content_sigma):
         self.content = content
@@ -65,20 +63,8 @@ class Stream(object):
             self.copied = True
             self.stream = target_stream
 
-'''
-def stream(content={}, volume=0, volume_sigma=0, content_sigma=0):
-    #Basic stream of droplets; Unlimited supply of one type of droplet
-    while 1:
-        vol = random.gauss(volume, volume_sigma*volume)
-        if content_sigma == 0:
-            cont = content.copy()
-        else:
-            cont = {}
-            for mol, amount in content.items():
-                cont[mol] = random.gauss(amount, content_sigma*amount)
 
-        yield list([vol, cont])
-'''
+### A SET OF FUNCTIONS (MOST OF THEM ARE GENERATORS) TO WORK WITH STREAMS
 
 
 def combine(stream1, stream2):
