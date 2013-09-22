@@ -253,7 +253,6 @@ class StreamParser(object):
                             for i, name in enumerate(targets):
                                 if name == '': targets[i] = 'current'
 
-
                         elif tag == 'MONITOR':
                             orig, name, target = found
 

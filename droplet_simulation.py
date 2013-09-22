@@ -66,43 +66,47 @@ class Stream(object):
 
 ### A SET OF FUNCTIONS (MOST OF THEM ARE GENERATORS) TO WORK WITH STREAMS
 
-
-def combine(stream1, stream2):
-    '''samples alternatingly from two streams'''
-    one = True
+def combine(*streams):
+    '''samples alternatingly from n streams'''
+    num = len(streams)
+    cur = 0
     while 1:
-        if one:
+        yield streams[cur].next()
+        cur = (cur + 1)%num 
+
+
+def combine_ratio(stream1, stream2, ratio):
+    '''Chooses randomly from two streams according to ratio.'''
+    if not 0 <= ratio <= 1:
+        raise RuntimeError('Ratio has to be between 0 and 1!')
+    while 1:
+        if random.random() >= ratio:
             yield stream1.next()
         else:
             yield stream2.next()
-        one = not one
 
 
-def merge(stream1, stream2):
-    '''Merge droplets coming from two streams, 1:1'''
+def merge(*streams):
+    '''Merge one droplet from each stream into a single (bigger) droplet'''
     while 1:
-        d1 = stream1.next()
-        d2 = stream2.next()
-        new_volume = d1[0] + d2[0]
-        content = d1[1]
+        droplets = [s.next() for s in streams]
+        volume = reduce(lambda x, y: x+y, [d[0] for d in droplets])
+        content = defaultdict(int)
+        for c in [d[1] for d in droplets]:
+            for m, a in c.items():
+                content[m] += a
 
-        for molecule, amount in d2[1].items():
-            try:
-                content[molecule] += amount
-            except KeyError:
-                content[molecule] = amount
-
-        yield [new_volume, content.copy()]
+        yield [volume, dict(content)]
 
 
-def split(stream):
-    '''Split droplets of stream in half (volume & content)'''
+def split(stream, num_progenitors = 2):
+    '''Split droplets of stream in n equal droplets (volume & content)'''
     while 1:
         droplet = stream.next()
-        new_volume = float(droplet[0]) / 2
+        new_volume = float(droplet[0]) / num_progenitors
         content = {}
         for c_id in droplet[1].keys():
-            new_amount = float(droplet[1][c_id]) / 2
+            new_amount = float(droplet[1][c_id]) / num_progenitors
             content[c_id] = new_amount
 
         # a split always leads to only one droplet
@@ -110,7 +114,7 @@ def split(stream):
             yield [new_volume, content.copy()]
 
 
-def reduce(stream, discart_ratio=0.5):
+def reduce_stream(stream, discart_ratio=0.5):
     '''randomly discarts percentage of droplets'''
     while 1:
         while random.random < discart_ratio:
@@ -192,32 +196,22 @@ def filter_stream(stream, func, tries=500):
 
         yield droplet
 
-
 def multi_buffer(streams, capacity):
-    '''Buffer with multiple stream inputs. [streams], capacity'''
-    # Yields a droplet first and fills buffer upon first use (nice when copying over)
-    yield streams[0].next()
+    '''buffer from multiple input streams with a set capacity'''
+    # Combine all streams
+    combined = combine(*streams)
 
-    def stream_sel(streams):
-        while 1:
-            for stream in streams:
-                yield stream
-
+    #Prefill buffer
     buff = []
-
-    if type(streams) != list:
-        streams = [streams]
-
-    streams = stream_sel(streams)
-
     while len(buff) < capacity:
-        buff.append(streams.next().next())
-
+        buff.append(combined.next())
+    
+    #Normal operation
     while 1:
         droplet = random.choice(buff)
         yield droplet
         buff.remove(droplet)
-        buff.append(streams.next().next())
+        buff.append(combined.next())
 
 
 def droplet_monitor(stream, name=''):
@@ -239,6 +233,7 @@ def droplet_monitor(stream, name=''):
         print header + disp
         yield droplet
 
+
 def hashify(droplets):
     d = []
     for vol, content in droplets:
@@ -257,14 +252,9 @@ def unique_droplets(droplets):
 
 
 def calculate_stdev(q):
-    '''From: http://www.daniweb.com/software-development/python/threads/438922/finding-the-standard-deviation-in-python'''
+    '''Simple stdev...'''
     avg = float(sum(q))/len(q)
-    dev = []
-    for x in q:
-        dev.append(x - avg)
-    sqr = []
-    for x in dev:
-        sqr.append(x * x)
+    sqr = [dev ** 2 for dev in [x-avg for x in q]]
     standard_dev = math.sqrt(sum(sqr)/(len(sqr)-1))
     return standard_dev
 
@@ -308,10 +298,10 @@ def extract_data(droplets, plot=False):
     return data
 
 
-def analyze(droplets):
+def analyze(droplets, print_stuff = True):
     dyes = it.chain.from_iterable([c.keys() for _, c in droplets])
     dyes = list(set(dyes))
-    print 'All dyes in droplets:', ', '.join(dyes)
+    all_print = ['All dyes in droplets:', ', '.join(dyes)]
 
     total_droplets = len(droplets)
 
@@ -321,11 +311,14 @@ def analyze(droplets):
     if len(c) < 10:
         num = len(c)
     else:
-        print 'Showing 10 most common droplets'
+        all_print.append('Showing 10 most common droplets')
 
     for drop, occ in c.items()[:num]:
         perc = round(100.0 * occ / total_droplets, 2)
-        print '{} times ({}%): {}'.format(occ, perc, drop)
+        all_print.append('{} times ({}%): {}'.format(occ, perc, drop))
+
+    if print_stuff:
+        print '\n'.join(all_print)
 
 
 def histogram(droplets, bins=5):
@@ -341,8 +334,8 @@ def histogram(droplets, bins=5):
 
         plt.show()
 
-# Some general filters for use with filter_stream (as second argument)
 
+# Some general filters for use with filter_stream (as second argument)
 
 def presence_filter(molecules):
     '''Use this filter to extract all droplets containing all mentioned molecules.'''
